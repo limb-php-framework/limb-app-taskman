@@ -1,0 +1,69 @@
+====== taskman ======
+Утилита taskman является аналогом ant, pake, etc и предназначен для выполнения абстрактных "задач". Задачей является функция PHP, начинающаяся со символов **task_**.
+
+Описание, зависимости и прочие свойства задачи описываются с помощью [[wp>PHPDoc]]. Поддерживаются следующие свойства:
+  * @desc - описание задачи, которое выводится в справке
+  * @alias - одно или несколько(перечисляются через запятую) дополнительных имен задачи
+  * @deps - задачи или задачи(перечисляются через запятую), которые должны быть выполнены перед текущей 
+  * @before - задачи или задачи(перечисляются через запятую), перед которыми должна быть выполнена текущая
+  * @after - задачи или задачи(перечисляются через запятую), после которых должна быть выполнена текущая
+  * @always - задача, которая всегда выполняется первой
+  * @default - задача, которая будет выполняться, если при вызове не указана конкретная задача
+
+===== Пример =====
+<code php>
+<?php
+
+require_once(dirname(__FILE__) . '/../taskman.inc.php');
+
+taskman_run();
+
+/**
+ * @desc Do something
+ * @deps prepare_something
+ * @default
+ * @alias main
+ */
+function task_something($args)
+{
+  taskman_sysmsg(taskman_prop('FOO', 'default value').PHP_EOL);
+}
+
+/**
+ * @desc Do before something
+ */
+function task_prepare_something(){}
+
+/**
+  * @always
+  * @desc Init
+  */
+function task_global_init(){}
+
+/**
+ * @before prepare_something
+ */
+function task_do_before_prepare(){}
+
+/**
+ * @after prepare_something
+ */
+function task_do_after_prepare(){}
+</code>
+Результат работы:
+<code>
+$ php ./something.php -D FOO=bar
+Setting prop FOO=bar
+************************ Running task 'global_init' ************************
+************************* 'global_init' done (0 sec.)*************************
+************************ Running task 'do_before_prepare' ************************
+************************* 'do_before_prepare' done (0 sec.)*************************
+************************ Running task 'prepare_something' ************************
+************************ Running task 'do_after_prepare' ************************
+************************* 'do_after_prepare' done (0 sec.)*************************
+************************* 'prepare_something' done (0 sec.)*************************
+************************ Running task 'something' ************************
+bar
+************************* 'something' done (0 sec.)*************************
+************************ All done (0.01 sec.)************************
+</code>
